@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .color-display {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+        }
+        .result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Цветовой конвертер</h1>
+    
+    <div class="container">
+        <h2>Выберите цвет</h2>
+        <input type="color" id="colorPicker" value="#000000">
+    </div>
+
+    <div class="container">
+        <h2>RGB</h2>
+        <input type="number" id="r" value="0" min="0" max="255"> R
+        <input type="number" id="g" value="0" min="0" max="255"> G
+        <input type="number" id="b" value="0" min="0" max="255"> B
+        <div class="color-display" id="rgbDisplay"></div>
+    </div>
+
+    <div class="container">
+        <h2>HLS</h2>
+        <input type="number" id="h" value="0" min="0" max="360"> H
+        <input type="number" id="l" value="0" min="0" max="100"> L
+        <input type="number" id="s" value="0" min="0" max="100"> S
+        <div class="color-display" id="hlsDisplay"></div>
+    </div>
+
+    <div class="container">
+        <h2>CMYK</h2>
+        <input type="number" id="c" value="0" min="0" max="100"> C
+        <input type="number" id="m" value="0" min="0" max="100"> M
+        <input type="number" id="y" value="0" min="0" max="100"> Y
+        <input type="number" id="k" value="0" min="0" max="100"> K
+        <div class="color-display" id="cmykDisplay"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
