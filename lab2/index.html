@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Основы обработки цифровых изображений/сжатие 
+изображений </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid black;
+            margin: 10px;
+        }
+        #result {
+            display: flex;
+            justify-content: space-around;
+        }
+    </style>
+</head>
+<body>
+    <h1>Основы обработки цифровых изображений/сжатие 
+изображений </h1>
+    <input type="file" id="upload" accept="image/*">
+    <button onclick="applyLinearContrast()">Линейное контрастирование</button>
+    <button onclick="applyHistogramEqualization()">Построение и эквализация гистограммы изображения</button>
+     <button onclick="drawHistogram()">Построить гистограмму</button>
+    
+    <div id="result">
+        <canvas id="originalCanvas"></canvas>
+        <canvas id="processedCanvas"></canvas>
+    </div>
+
+    <script>
+        const originalCanvas = document.getElementById('originalCanvas');
+        const processedCanvas = document.getElementById('processedCanvas');
+        const ctxOriginal = originalCanvas.getContext('2d');
+        const ctxProcessed = processedCanvas.getContext('2d');
+        let imageData;
+
+        document.getElementById('upload').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const img = new Image();
+            img.onload = () => {
+                const aspectRatio = img.width / img.height;
+                const newHeight = 400;
+                const newWidth = newHeight * aspectRatio;
+
+                originalCanvas.width = newWidth;
+                originalCanvas.height = newHeight;
+                processedCanvas.width = newWidth;
+                processedCanvas.height = newHeight;
+
+                ctxOriginal.drawImage(img, 0, 0, newWidth, newHeight);
+                imageData = ctxOriginal.getImageData(0, 0, newWidth, newHeight);
+            };
+            img.src = URL.createObjectURL(file);
+        });
+
+        function applyLinearContrast() {
+            const data = imageData.data;
+            let min = 255, max = 0;
+
+            // Находим min и max
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                if (avg < min) min = avg;
+                if (avg > max) max = avg;
+            }
+
+            // Применяем линейное контрастирование
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = ((data[i] - min) * 255) / (max - min);     // Red
+                data[i + 1] = ((data[i + 1] - min) * 255) / (max - min); // Green
+                data[i + 2] = ((data[i + 2] - min) * 255) / (max - min); // Blue
+                // Alpha остается без изменений
+            }
+
+            ctxProcessed.putImageData(imageData, 0, 0);
+        }
+
+        function applyHistogramEqualization() {
+            const data = imageData.data;
+            const histogram = new Array(256).fill(0);
+            const cdf = new Array(256).fill(0);
+            const totalPixels = data.length / 4;
+
+            // Построение гистограммы
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
+                histogram[avg]++;
+            }
+
+            // Кумулятивная гистограмма
+            cdf[0] = histogram[0];
+            for (let i = 1; i < histogram.length; i++) {
+                cdf[i] = cdf[i - 1] + histogram[i];
+            }
+
+            // Применение эквализации
+            const newImageData = ctxProcessed.createImageData(imageData.width, imageData.height);
+            const newData = newImageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
+                const newValue = Math.floor((cdf[avg] - 1) / totalPixels * 255);
+                newData[i] = newValue;     // Red
+                newData[i + 1] = newValue; // Green
+                newData[i + 2] = newValue; // Blue
+                newData[i + 3] = 255;      // Alpha
+            }
+
+            ctxProcessed.putImageData(newImageData, 0, 0);
+        }
+        
+        function drawHistogram() {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        
+        const histogram = new Array(256).fill(0);
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const brightness = data[i]; // Используем R для простоты
+            histogram[brightness]++;
+        }
+        
+        // Отображаем гистограмму
+        const histogramCanvas = document.createElement('canvas');
+        histogramCanvas.width = 256;
+        histogramCanvas.height = 100;
+        const hCtx = histogramCanvas.getContext('2d');
+    
+        for (let i = 0; i < histogram.length; i++) {
+            const height = (histogram[i] / Math.max(...histogram)) * histogramCanvas.height;
+            hCtx.fillStyle = 'black';
+            hCtx.fillRect(i, histogramCanvas.height - height, 1, height);
+        }
+        
+        document.getElementById('output').src = histogramCanvas.toDataURL();
+    }
+
+    </script>
+</body>
+</html>
